@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../FAC"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"vetor1": "c",
+			"swap": "c",
+			"inserir": "c",
+			"stdio.h": "c"
+		}
+	}
+}
