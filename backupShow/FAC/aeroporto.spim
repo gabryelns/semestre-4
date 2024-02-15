@@ -1,0 +1,214 @@
+# 1º Fazer uma array
+# 2º Salvar a quantidade de vôos para cada aeroporto.
+# 3º Salvar a maior quantidade de vôos em G que um único aeroporto possuí.
+# 4º Imprimir todos os aeroportos de {1, ..., A} que possuem G vôos.
+.data
+	# String que vai ser lida. 4 * 25 chars.
+	buffer: .space 12
+
+	# 101 Aeroportos no máximo * 4 bytes.
+	aeroportos: .space 404
+	#aeroportos: .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+.text
+	# --------------------------------------------------------------------------------------
+	# This procedure reads string from STDIN and parse two integers separated by space {a b}
+	# respectively in $v0 and $v1.
+	# --------------------------------------------------------------------------------------
+	read_integers:
+		addi $v0, $zero, 8 # read_string()
+		la $a0, buffer
+		addi $a1, $zero, 12 # Maximum length of charcters it can read.
+		syscall
+
+		# t0 will have the result of the first integer.
+		add $t0, $zero, $zero
+		# t1 will have the addres of the buffer as it goes forward.
+		la $t1, buffer
+
+	parse:
+		# Load character into t3
+		lb $t3, 0($t1)
+		# Go to the next character.
+		addi $t1, $t1, 1
+		# If character is newline, done with the second integer.
+		beq $t3, 10, done_second
+		# If character is null, done with the second integer.
+		beqz $t3, done_second
+		# If character is space, done with the first integer.
+		beq $t3, 32, done_first
+		# Transform character into number.
+		addi $t3, $t3, -48
+		# Multiply by 10.
+		mul $t0, $t0, 10
+		# Add the the new digit.
+		add $t0, $t0, $t3
+		# Repeat loop.
+		j parse
+
+	done_first:
+		# Add result of t0 to the apropriate register.
+		add $v0, $zero, $t0
+		# t0 will have the result of the second integer.
+		add $t0, $zero, $zero
+		# Parse again.
+		j parse
+
+	done_second:
+		# Add result of t1 to the apropriate register.
+		add $v1, $zero, $t0
+		# Return to the procedure caller.
+		jr $ra
+
+	# -------------------------------------
+	# Zero, as in the verb, all the array.
+	# -------------------------------------
+	clean_array:
+		# Go from the end until the start of the array that we need zeroed.
+		add $t0, $zero, $s8
+
+	clean_array_recursive:
+		# When t0 is zero, we cleaned it all. Note zero itself does not matter.
+		beq $t0, $zero, clean_array_exit
+		# Get position of the current index.
+		sll $t1, $t0, 2
+		# Get address plus position.
+		add $t1, $s4, $t1
+		# Save byte as zero in memory.
+		sw $zero, 0($t1)
+		# Go to the previous character.
+		addi $t0, $t0, -1
+		# Repeat loop.
+		j clean_array_recursive
+
+	clean_array_exit:
+		# Exit loop.
+		jr $ra
+
+	#-----------------------------------------------
+	# Main.
+	#-----------------------------------------------
+	main:
+		la $s4, aeroportos    # Endereço de aeroportos.
+		addi $s7, $zero, 1    # s7 = s7 + 1 = Testes
+		j prepare_main
+
+	#-----------------------------------------------
+	# Print procedure.
+	#-----------------------------------------------
+	print_recursive:
+		beq $t0, $t2, print_exit # Base case: when we left.
+
+		sll $t1, $t0, 2   # Get index.
+		add $t1, $s4, $t1 # A + i
+		lw $t1, 0($t1)    # Get value A[i]
+
+		addi $t0, $t0, 1              # Next position.
+		bne $t1, $s5, print_recursive # If t1 is less than the value needed to print, repeat loop
+
+		addi $a0, $t0, -1 # a0 = t1 - 1 = position of item
+		#add $a0, $t1, $zero
+		addi $v0, $zero, 1  # 1 = print_int()
+		syscall
+
+		addi $a0, $zero, 32 # 32 = ' ' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+
+		j print_recursive
+
+	print_results:
+		# Print the words before
+		addi $a0, $zero, 84 # 10 = '\n' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+		addi $a0, $zero, 101 # 10 = '\n' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+		addi $a0, $zero, 115 # 10 = '\n' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+		addi $a0, $zero, 116 # 10 = '\n' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+		addi $a0, $zero, 101 # 10 = '\n' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+		addi $a0, $zero, 32 # 10 = '\n' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+		add $a0, $zero, $s7  # a0 = s7
+		addi $v0, $zero, 1 # 1 = print_int()
+		syscall
+		addi $a0, $zero, 10 # 10 = '\n' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+
+		# Print the numbers.
+		add $t2, $zero, $s8 # Max. 100 numbers to read.
+		add $t0, $zero, $zero # to = 0
+		j print_recursive
+
+	print_exit:
+		addi $a0, $zero, 10 # 10 = '\n' in ASCII
+		addi $v0, $zero, 11 # 11 = print_char()
+		syscall
+		syscall
+
+		add $s7, $s7, 1 # More one test.
+
+	#-----------------------------------------------
+	# Read test.
+	#-----------------------------------------------
+	prepare_main:
+		jal read_integers
+
+		add $s0, $zero, $v0 # s0 = A
+		add $s1, $zero, $v1 # s1 = B
+		addi $s8, $s0, 1    # s8 = B + 1
+
+		beq $s0, $zero, exit # Exit quando A ou B for 0.
+		beq $s1, $zero, exit # Exit quando A ou B for 0.
+		jal clean_array
+
+		add $s5, $zero, $zero # s5 = greatest number of takeoffs of a single airport.
+
+	read_destination:
+		beq $s1, $zero, print_results # Volta pro main para ler mais um teste
+
+		jal read_integers
+		add $s2, $zero, $v0 # s2 = X
+		add $s3, $zero, $v1 # s3 = Y
+
+		sll $s2, $s2, 2 # X *= 4 to get position of X in the array...
+		add $s2, $s4, $s2 # X + &A
+		lw $s6, 0($s2) # Pegar a pontuação atual desse destino.
+		addi $s6, $s6, 1 # ++A[X]
+		sw $s6, 0($s2)
+
+		# Greatest number.
+		ble $s6, $s5, read_destination_2
+		add $s5, $zero, $s6
+
+	read_destination_2:
+		sll $s3, $s3, 2 # X *= 4 to get position of X in the array...
+		add $s3, $s4, $s3 # X + &A
+		lw $s6, 0($s3) # Pegar a pontuação atual desse destino.
+		addi $s6, $s6, 1 # ++A[X]
+		sw $s6, 0($s3)
+
+		# Greatest number.
+		ble $s6, $s5, read_destination_3
+		add $s5, $zero, $s6
+
+	read_destination_3:
+
+		addi $s1, $s1, -1 # --B
+		j read_destination
+
+	#-----------------------------------------------
+	# Exit.
+	#-----------------------------------------------
+	exit:
+		addi $v0, $zero, 10 # 10 = exit()
+		syscall

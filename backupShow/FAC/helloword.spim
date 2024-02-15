@@ -1,0 +1,13 @@
+.data
+mensagem: .asciiz "Hello, World!"
+
+.text
+main:
+    # Imprimir a mensagem
+    li $v0, 4
+    la $a0, mensagem
+    syscall
+
+    # Sair do programa
+    li $v0, 10
+    syscall

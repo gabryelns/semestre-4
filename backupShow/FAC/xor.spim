@@ -1,0 +1,54 @@
+.data
+    um: .asciiz "1\n"
+    dois: .asciiz "2\n"
+    input: .space 100
+
+.text
+
+main:
+
+    li $v0, 5
+    syscall
+    move $t6, $v0
+
+    li $t1, 0
+
+loop:
+
+    beq $t6, $zero, exit
+
+    li $v0, 8 
+    la $a0, input
+    syscall
+
+    la $t0, input
+
+    lb $t2, 0($t0)
+    lb $t3, 2($t0)
+
+    beq $t3, $t2, iguais
+    bne $t3, $t2, diferentes
+
+iguais:
+    li $v0, 4
+    la $a0, um
+    syscall
+
+    addi $t6, $t6, -1
+
+    j loop
+
+diferentes:
+
+    li $v0, 4
+    la $a0, dois
+    syscall
+
+    addi $t6, $t6, -1
+
+    j loop
+
+exit:
+
+    li $v0, 10 
+    syscall

@@ -1,0 +1,52 @@
+.data
+    gabarito:   .space 128
+    resp:  .space 128 
+    acertos:    .word 0
+    barran: .asciiz "\n"
+
+.text
+
+main:
+    li $v0, 5 
+    syscall
+    move $t0, $v0  
+
+    li $v0, 8                  
+    la $a0, gabarito
+    li $a1, 128       
+    syscall
+
+    li $v0, 8                  
+    la $a0, resp
+    li $a1, 128   
+    syscall
+
+    li $t1, 0
+    li $t2, 0
+
+loop:
+    lb $t3, gabarito($t2)
+    lb $t4, resp($t2)
+
+    beq $t3, $t4, acertou
+
+    j questaoprox
+
+acertou:
+    addi $t1,$t1, 1
+
+questaoprox:
+    addi $t2,$t2, 1
+
+    bne $t2, $t0, loop
+    move $a0, $t1
+
+    li $v0, 1
+    syscall
+
+    li $v0, 4
+    la $a0, barran
+    syscall
+
+    li $v0, 10
+    syscall
